@@ -2,9 +2,9 @@ services:
   mariadb:
     image: 'mariadb:latest'
     environment:
-      - 'MARIADB_DATABASE=mydatabase'
-      - 'MARIADB_PASSWORD=secret'
+      - 'MARIADB_DATABASE=team_productivity_hub'
+      - 'MARIADB_PASSWORD=secret123'
       - 'MARIADB_ROOT_PASSWORD=verysecret'
-      - 'MARIADB_USER=myuser'
+      - 'MARIADB_USER=rashid'
     ports:
-      - '3306'
+      - '3306:3306'
