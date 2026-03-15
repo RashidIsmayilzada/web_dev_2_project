@@ -9,8 +9,18 @@
       
       <ul class="nav flex-column gap-3 mb-auto nav-links-animation">
         <li class="nav-item">
-          <router-link to="/dashboard" class="nav-link text-white active-link rounded-3 px-3 py-2 fw-semibold">
+          <router-link to="/dashboard" class="nav-link text-white rounded-3 px-3 py-2 fw-semibold transition-all">
             <i class="bi bi-grid-fill me-2"></i> Dashboard
+          </router-link>
+        </li>
+        <li class="nav-item">
+          <router-link to="/projects" class="nav-link text-white rounded-3 px-3 py-2 fw-semibold transition-all">
+            <i class="bi bi-folder-fill me-2"></i> Projects
+          </router-link>
+        </li>
+        <li class="nav-item">
+          <router-link to="/tasks" class="nav-link text-white rounded-3 px-3 py-2 fw-semibold transition-all">
+            <i class="bi bi-check-square-fill me-2"></i> Tasks
           </router-link>
         </li>
       </ul>
@@ -57,7 +67,7 @@ const logout = () => {
   color: #fff !important;
   background: rgba(255, 255, 255, 0.05);
 }
-.active-link {
+.active-link, .router-link-active {
   background: rgba(255, 255, 255, 0.1);
   box-shadow: inset 2px 0 0 #4f46e5;
 }

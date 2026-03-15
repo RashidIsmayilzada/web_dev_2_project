@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByAssigneeIdAndStatus(Long assigneeId, String status);
+    List<Task> findByProjectId(Long projectId);
 }

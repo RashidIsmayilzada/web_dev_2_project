@@ -53,6 +53,10 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
+:deep(.form-label) {
+  color: #ffffff !important;
+}
+
 .header-animation {
   animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: 0.1s;

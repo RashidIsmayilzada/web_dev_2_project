@@ -12,8 +12,9 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
-    // Generate a secure key for HS256
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    // Use a static base64 encoded secure key for HS256 to survive restarts
+    private static final String SECRET_KEY = "VGhpc0lzQVNlY3VyZVNlY3JldEtleUZvckpXVFRva2Vuc1RoaXNJc0FTZWN1cmVTZWNyZXRLZXk=";
+    private final Key key = Keys.hmacShaKeyFor(io.jsonwebtoken.io.Decoders.BASE64.decode(SECRET_KEY));
     private final long expirationMs = 86400000; // 1 day
 
     public String extractUsername(String token) {

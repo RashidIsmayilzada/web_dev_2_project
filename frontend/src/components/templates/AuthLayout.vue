@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex justify-content-center align-items-center vh-100 bg-animated">
-    <div class="glass-card p-5 text-center shadow-lg">
+    <div class="glass-container glass-card p-5 text-center shadow-lg">
       <slot />
     </div>
   </div>

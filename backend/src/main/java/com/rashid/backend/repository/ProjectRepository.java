@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
     long countByTeamIdIn(List<Long> teamIds);
+    List<Project> findByTeamId(Long teamId);
 }
