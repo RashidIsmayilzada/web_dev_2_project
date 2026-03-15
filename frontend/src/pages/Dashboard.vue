@@ -12,19 +12,19 @@
       <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-card">
           <h6 class="text-muted fw-semibold mb-3">Total Projects</h6>
-          <h2 class="fw-bold m-0 text-dark">12</h2>
+          <h2 class="fw-bold m-0 text-dark">{{ stats.totalProjects }}</h2>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-card">
           <h6 class="text-muted fw-semibold mb-3">Active Tasks</h6>
-          <h2 class="fw-bold m-0 text-dark">48</h2>
+          <h2 class="fw-bold m-0 text-dark">{{ stats.activeTasks }}</h2>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-card">
           <h6 class="text-muted fw-semibold mb-3">Hours Tracked</h6>
-          <h2 class="fw-bold m-0 text-dark">126h</h2>
+          <h2 class="fw-bold m-0 text-dark">{{ stats.hoursTracked }}h</h2>
         </div>
       </div>
     </div>
