@@ -1,10 +1,71 @@
 services:
   mariadb:
-    image: 'mariadb:latest'
+    image: mariadb:11.4
+    container_name: mariadb
+    restart: unless-stopped
     environment:
-      - 'MARIADB_DATABASE=mydatabase'
-      - 'MARIADB_PASSWORD=secret'
-      - 'MARIADB_ROOT_PASSWORD=verysecret'
-      - 'MARIADB_USER=myuser'
+      MARIADB_ROOT_PASSWORD: rootpass
+      MARIADB_DATABASE: appdb
+      MARIADB_USER: developer
+      MARIADB_PASSWORD: secret123
     ports:
-      - '3306'
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    # Current upstream image resolves to amd64 here, so declare it explicitly on ARM hosts.
+    platform: linux/amd64
+    container_name: phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0
+    ports:
+      - "8081:80"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      SPRING_DOCKER_COMPOSE_ENABLED: "false"
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/appdb
+      SPRING_DATASOURCE_USERNAME: developer
+      SPRING_DATASOURCE_PASSWORD: secret123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      APP_JWT_SECRET: "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVm"
+      APP_JWT_EXPIRATION_MS: "80000000"
+      APP_CORS_ALLOWED_ORIGINS: "http://localhost:5173"
+      APP_SEED_DEMO_DATA: "true"
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  mariadb_data:
