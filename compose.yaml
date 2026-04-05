@@ -6,8 +6,8 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: rootpass
       MARIADB_DATABASE: appdb
-      MARIADB_USER: appuser
-      MARIADB_PASSWORD: apppass
+      MARIADB_USER: developer
+      MARIADB_PASSWORD: secret123
     ports:
       - "3306:3306"
     volumes:
@@ -17,6 +17,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    # Current upstream image resolves to amd64 here, so declare it explicitly on ARM hosts.
+    platform: linux/amd64
+    container_name: phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0
+    ports:
+      - "8081:80"
 
   backend:
     build:
@@ -30,8 +46,8 @@ services:
     environment:
       SPRING_DOCKER_COMPOSE_ENABLED: "false"
       SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/appdb
-      SPRING_DATASOURCE_USERNAME: appuser
-      SPRING_DATASOURCE_PASSWORD: apppass
+      SPRING_DATASOURCE_USERNAME: developer
+      SPRING_DATASOURCE_PASSWORD: secret123
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     ports:
       - "8080:8080"

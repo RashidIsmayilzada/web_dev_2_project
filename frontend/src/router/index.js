@@ -4,13 +4,16 @@ import Dashboard from '../pages/Dashboard.vue'
 import Teams from '../pages/Teams.vue'
 import Projects from '../pages/Projects.vue'
 import Tasks from '../pages/Tasks.vue'
+import TimeLogs from '../pages/TimeLogs.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', component: Login, meta: { requiresGuest: true } },
   { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } },
+  { path: '/teams', component: Teams, meta: { requiresAuth: true } },
   { path: '/projects', component: Projects, meta: { requiresAuth: true } },
-  { path: '/tasks', component: Tasks, meta: { requiresAuth: true } }
+  { path: '/tasks', component: Tasks, meta: { requiresAuth: true } },
+  { path: '/timelogs', component: TimeLogs, meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

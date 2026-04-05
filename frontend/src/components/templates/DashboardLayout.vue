@@ -23,6 +23,11 @@
             <i class="bi bi-check-square-fill me-2"></i> Tasks
           </router-link>
         </li>
+        <li class="nav-item">
+          <router-link to="/timelogs" class="nav-link text-white rounded-3 px-3 py-2 fw-semibold transition-all">
+            <i class="bi bi-clock-history me-2"></i> Time Logs
+          </router-link>
+        </li>
       </ul>
       
       <div class="mt-auto nav-links-animation" style="animation-delay: 0.1s;">
