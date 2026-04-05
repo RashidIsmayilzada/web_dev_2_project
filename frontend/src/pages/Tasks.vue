@@ -34,7 +34,13 @@
     <div class="card border-0 shadow-sm rounded-4 p-4">
       <div class="row g-4">
         <div class="col-lg-4" v-for="status in statuses" :key="status">
-          <div class="border rounded-4 p-3 h-100 bg-light-subtle">
+          <div
+            class="border rounded-4 p-3 h-100 bg-light-subtle task-column"
+            :class="{ 'task-column-active': dragOverStatus === status }"
+            @dragover.prevent="handleColumnDragOver(status)"
+            @dragleave="handleColumnDragLeave(status)"
+            @drop="handleTaskDrop(status)"
+          >
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h6 class="fw-bold m-0">{{ formatStatus(status) }}</h6>
               <AppBadge :variant="status === 'DONE' ? 'success' : status === 'IN_PROGRESS' ? 'primary' : 'secondary'">
@@ -43,7 +49,17 @@
             </div>
 
             <div class="d-flex flex-column gap-3">
-              <div v-for="task in tasksByStatus(status)" :key="task.id" class="card border-0 shadow-sm rounded-4 p-3">
+              <div
+                v-for="task in tasksByStatus(status)"
+                :key="task.id"
+                class="card border-0 shadow-sm rounded-4 p-3 task-card"
+                :class="{ 'task-card-dragging': draggedTaskId === task.id }"
+                draggable="true"
+                @dragstart="handleTaskDragStart(task, status)"
+                @dragend="handleTaskDragEnd"
+                @dragover.prevent="handleCardDragOver(task, status)"
+                @drop.stop="handleCardDrop(task, status)"
+              >
                 <div class="d-flex justify-content-between align-items-start gap-2">
                   <div>
                     <h6 class="fw-bold mb-1">{{ task.title }}</h6>
@@ -139,6 +155,9 @@ const pageSuccess = ref('')
 const activeTimer = ref(null)
 const showTaskModal = ref(false)
 const editingTaskId = ref(null)
+const draggedTaskId = ref(null)
+const draggedFromStatus = ref('')
+const dragOverStatus = ref('')
 const taskFilters = ref({
   teamId: '',
   projectId: '',
@@ -217,6 +236,126 @@ const resetFilters = async () => {
 const tasksByStatus = (status) => tasks.value.filter((task) => task.status === status)
 
 const formatStatus = (status) => status.replace('_', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+
+const moveTaskInList = (taskId, targetTaskId = null, nextStatus = null) => {
+  const sourceIndex = tasks.value.findIndex((task) => task.id === taskId)
+  if (sourceIndex === -1) return null
+
+  const sourceTask = tasks.value[sourceIndex]
+  const updatedTask = { ...sourceTask, status: nextStatus || sourceTask.status }
+  tasks.value.splice(sourceIndex, 1)
+
+  if (targetTaskId == null) {
+    const insertIndex = tasks.value.reduce((lastIndex, task, index) => (
+      task.status === updatedTask.status ? index + 1 : lastIndex
+    ), 0)
+    tasks.value.splice(insertIndex, 0, updatedTask)
+    return sourceTask
+  }
+
+  const targetIndex = tasks.value.findIndex((task) => task.id === targetTaskId)
+  if (targetIndex === -1) {
+    tasks.value.splice(sourceIndex, 0, sourceTask)
+    return null
+  }
+
+  tasks.value.splice(targetIndex, 0, updatedTask)
+  return sourceTask
+}
+
+const resetDragState = () => {
+  draggedTaskId.value = null
+  draggedFromStatus.value = ''
+  dragOverStatus.value = ''
+}
+
+const handleTaskDragStart = (task, status) => {
+  draggedTaskId.value = task.id
+  draggedFromStatus.value = status
+  dragOverStatus.value = status
+}
+
+const handleTaskDragEnd = () => {
+  resetDragState()
+}
+
+const handleColumnDragOver = (status) => {
+  if (!draggedTaskId.value) return
+  dragOverStatus.value = status
+}
+
+const handleColumnDragLeave = (status) => {
+  if (dragOverStatus.value === status) {
+    dragOverStatus.value = ''
+  }
+}
+
+const persistTaskStatusChange = async (task, status, previousStatus, successMessage) => {
+  pageError.value = ''
+  pageSuccess.value = ''
+
+  try {
+    await updateTask(task.id, { status })
+    pageSuccess.value = successMessage
+  } catch (error) {
+    task.status = previousStatus
+    pageError.value = error.response?.data?.message || 'Could not move the task.'
+    await loadTasks()
+  } finally {
+    resetDragState()
+  }
+}
+
+const handleCardDragOver = (task, status) => {
+  if (!draggedTaskId.value || draggedTaskId.value === task.id) return
+  dragOverStatus.value = status
+}
+
+const handleCardDrop = async (targetTask, status) => {
+  const task = tasks.value.find((item) => item.id === draggedTaskId.value)
+  if (!task) {
+    resetDragState()
+    return
+  }
+
+  if (task.id === targetTask.id) {
+    resetDragState()
+    return
+  }
+
+  const previousStatus = task.status
+  moveTaskInList(task.id, targetTask.id, status)
+
+  if (previousStatus === status) {
+    pageError.value = ''
+    pageSuccess.value = `Reordered "${task.title}" in ${formatStatus(status)}.`
+    resetDragState()
+    return
+  }
+
+  await persistTaskStatusChange(task, status, previousStatus, `Moved "${task.title}" to ${formatStatus(status)}.`)
+}
+
+const handleTaskDrop = async (status) => {
+  const task = tasks.value.find((item) => item.id === draggedTaskId.value)
+  if (!task) {
+    resetDragState()
+    return
+  }
+
+  const previousStatus = task.status
+
+  if (previousStatus === status) {
+    moveTaskInList(task.id, null, status)
+    pageError.value = ''
+    pageSuccess.value = `Reordered "${task.title}" in ${formatStatus(status)}.`
+    resetDragState()
+    return
+  }
+
+  moveTaskInList(task.id, null, status)
+  await persistTaskStatusChange(task, status, previousStatus, `Moved "${task.title}" to ${formatStatus(status)}.`)
+}
 
 const openCreateModal = async () => {
   editingTaskId.value = null
@@ -307,3 +446,26 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.task-column {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.task-column-active {
+  background-color: rgba(13, 110, 253, 0.08) !important;
+  box-shadow: inset 0 0 0 2px rgba(13, 110, 253, 0.2);
+  border-color: rgba(13, 110, 253, 0.4) !important;
+}
+
+.task-card {
+  cursor: grab;
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-card-dragging {
+  opacity: 0.55;
+  transform: rotate(1deg) scale(0.98);
+  cursor: grabbing;
+}
+</style>

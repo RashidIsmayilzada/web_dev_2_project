@@ -1,5 +1,6 @@
 package com.rashid.backend.service;
 
+import com.rashid.backend.dto.common.PagedResponseDTO;
 import com.rashid.backend.dto.project.ProjectDTO;
 import com.rashid.backend.model.Project;
 import com.rashid.backend.model.TeamMember;
@@ -7,6 +8,7 @@ import com.rashid.backend.model.User;
 import com.rashid.backend.repository.ProjectRepository;
 import com.rashid.backend.repository.TeamMemberRepository;
 import com.rashid.backend.service.interfaces.ProjectService;
+import com.rashid.backend.util.PaginationUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -45,7 +47,7 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<ProjectDTO> getProjectsForUser(String username) {
+    public PagedResponseDTO<ProjectDTO> getProjectsForUser(int page, int size, String username) {
         User user = authorizationService.getRequiredUser(username);
         List<TeamMember> userTeams = teamMemberRepository.findByUserId(user.getId());
         List<ProjectDTO> projectDTOs = new ArrayList<>();
@@ -61,6 +63,6 @@ public class ProjectServiceImpl implements ProjectService {
                 projectDTOs.add(dto);
             }
         }
-        return projectDTOs;
+        return PagedResponseDTO.from(PaginationUtils.paginate(projectDTOs, page, size));
     }
 }

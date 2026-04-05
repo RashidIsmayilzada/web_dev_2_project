@@ -1,5 +1,6 @@
 package com.rashid.backend.service;
 
+import com.rashid.backend.dto.common.PagedResponseDTO;
 import com.rashid.backend.dto.timelog.TimeLogDTO;
 import com.rashid.backend.exception.BadRequestException;
 import com.rashid.backend.model.Task;
@@ -7,6 +8,7 @@ import com.rashid.backend.model.TimeLog;
 import com.rashid.backend.model.User;
 import com.rashid.backend.repository.TimeLogRepository;
 import com.rashid.backend.service.interfaces.TimeLogService;
+import com.rashid.backend.util.PaginationUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -45,12 +47,14 @@ public class TimeLogServiceImpl implements TimeLogService {
     }
 
     @Override
-    public List<TimeLogDTO> getUserTimeLogs(String username) {
+    public PagedResponseDTO<TimeLogDTO> getUserTimeLogs(int page, int size, String username) {
         User user = authorizationService.getRequiredUser(username);
-        return timeLogRepository.findByUserId(user.getId()).stream()
+        List<TimeLogDTO> logs = timeLogRepository.findByUserId(user.getId()).stream()
                 .sorted(Comparator.comparing(TimeLog::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .map(this::mapTimeLog)
                 .toList();
+
+        return PagedResponseDTO.from(PaginationUtils.paginate(logs, page, size));
     }
 
     public TimeLogDTO mapTimeLog(TimeLog log) {

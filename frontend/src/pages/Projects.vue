@@ -90,11 +90,12 @@
 
 <script setup>
 import { computed, ref, onMounted } from 'vue'
-import axios from 'axios'
 import DashboardLayout from '../components/templates/DashboardLayout.vue'
 import AppButton from '../components/atoms/AppButton.vue'
 import AppInput from '../components/atoms/AppInput.vue'
 import FormGroup from '../components/molecules/FormGroup.vue'
+import { createProject as createProjectRequest, getProjects } from '../services/projectService'
+import { getTeams } from '../services/teamService'
 
 const projects = ref([])
 const teams = ref([])
@@ -113,8 +114,7 @@ const canCreateProject = computed(() => {
 
 const fetchProjects = async () => {
   try {
-    const { data } = await axios.get('/api/projects')
-    projects.value = data
+    projects.value = await getProjects()
   } catch (error) {
     console.error("Failed to fetch projects", error)
   } finally {
@@ -123,8 +123,7 @@ const fetchProjects = async () => {
 
 const fetchTeams = async () => {
   try {
-    const { data } = await axios.get('/api/teams')
-    teams.value = data
+    teams.value = await getTeams()
   } catch (error) {
     console.error("Failed to fetch teams", error)
   }
@@ -159,7 +158,7 @@ const createProject = async () => {
       teamId: Number(newProject.value.teamId)
     }
 
-    await axios.post('/api/projects', payload)
+    await createProjectRequest(payload)
     showCreateModal.value = false
     resetProjectForm()
     await fetchProjects()

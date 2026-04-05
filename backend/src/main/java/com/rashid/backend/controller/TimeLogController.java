@@ -1,12 +1,11 @@
 package com.rashid.backend.controller;
 
+import com.rashid.backend.dto.common.PagedResponseDTO;
 import com.rashid.backend.dto.timelog.TimeLogDTO;
 import com.rashid.backend.service.interfaces.TimeLogService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/timelogs")
@@ -25,8 +24,11 @@ public class TimeLogController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TimeLogDTO>> getUserTimeLogs(Authentication authentication) {
-        List<TimeLogDTO> logs = timeLogService.getUserTimeLogs(authentication.getName());
-        return ResponseEntity.ok(logs);
+    public ResponseEntity<PagedResponseDTO<TimeLogDTO>> getUserTimeLogs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(timeLogService.getUserTimeLogs(page, size, authentication.getName()));
     }
 }

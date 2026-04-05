@@ -1,13 +1,12 @@
 package com.rashid.backend.controller;
 
+import com.rashid.backend.dto.common.PagedResponseDTO;
 import com.rashid.backend.dto.task.TaskDTO;
 import com.rashid.backend.dto.task.TaskFilterDTO;
 import com.rashid.backend.service.interfaces.TaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -26,12 +25,14 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskDTO>> getTasks(
+    public ResponseEntity<PagedResponseDTO<TaskDTO>> getTasks(
             @RequestParam(required = false) Long projectId,
             @RequestParam(required = false) Long teamId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String assignee,
             @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
             Authentication authentication
     ) {
         TaskFilterDTO filter = new TaskFilterDTO();
@@ -40,7 +41,7 @@ public class TaskController {
         filter.setStatus(status);
         filter.setAssignee(assignee);
         filter.setSearch(search);
-        return ResponseEntity.ok(taskService.getTasks(filter, authentication.getName()));
+        return ResponseEntity.ok(taskService.getTasks(filter, page, size, authentication.getName()));
     }
 
     @PutMapping("/{taskId}")
@@ -60,8 +61,12 @@ public class TaskController {
     }
 
     @GetMapping("/project/{projectId}")
-    public ResponseEntity<List<TaskDTO>> getTasksForProject(@PathVariable Long projectId, Authentication authentication) {
-        List<TaskDTO> tasks = taskService.getTasksForProject(projectId, authentication.getName());
-        return ResponseEntity.ok(tasks);
+    public ResponseEntity<PagedResponseDTO<TaskDTO>> getTasksForProject(
+            @PathVariable Long projectId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(taskService.getTasksForProject(projectId, page, size, authentication.getName()));
     }
 }

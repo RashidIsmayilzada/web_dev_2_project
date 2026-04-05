@@ -1,12 +1,11 @@
 package com.rashid.backend.controller;
 
+import com.rashid.backend.dto.common.PagedResponseDTO;
 import com.rashid.backend.dto.project.ProjectDTO;
 import com.rashid.backend.service.interfaces.ProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -25,8 +24,11 @@ public class ProjectController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProjectDTO>> getProjects(Authentication authentication) {
-        List<ProjectDTO> projects = projectService.getProjectsForUser(authentication.getName());
-        return ResponseEntity.ok(projects);
+    public ResponseEntity<PagedResponseDTO<ProjectDTO>> getProjects(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(projectService.getProjectsForUser(page, size, authentication.getName()));
     }
 }

@@ -1,5 +1,6 @@
 package com.rashid.backend.service;
 
+import com.rashid.backend.dto.common.PagedResponseDTO;
 import com.rashid.backend.dto.team.TeamDTO;
 import com.rashid.backend.dto.team.TeamInviteDTO;
 import com.rashid.backend.dto.team.TeamInviteRequestDTO;
@@ -19,6 +20,7 @@ import com.rashid.backend.repository.TeamMemberRepository;
 import com.rashid.backend.repository.TeamRepository;
 import com.rashid.backend.repository.UserRepository;
 import com.rashid.backend.service.interfaces.TeamService;
+import com.rashid.backend.util.PaginationUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -48,12 +50,14 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public List<TeamDTO> getUserTeams(String username) {
+    public PagedResponseDTO<TeamDTO> getUserTeams(int page, int size, String username) {
         User user = authorizationService.getRequiredUser(username);
 
-        return teamMemberRepository.findByUserId(user.getId()).stream()
+        List<TeamDTO> teams = teamMemberRepository.findByUserId(user.getId()).stream()
                 .map(member -> mapTeam(member.getTeam(), member.getRole()))
                 .toList();
+
+        return PagedResponseDTO.from(PaginationUtils.paginate(teams, page, size));
     }
 
     @Override
@@ -93,13 +97,15 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public List<TeamMemberDTO> getTeamMembers(Long teamId, String username) {
+    public PagedResponseDTO<TeamMemberDTO> getTeamMembers(Long teamId, int page, int size, String username) {
         User user = authorizationService.getRequiredUser(username);
         authorizationService.requireTeamMembership(teamId, user.getId());
 
-        return teamMemberRepository.findByTeamId(teamId).stream()
+        List<TeamMemberDTO> members = teamMemberRepository.findByTeamId(teamId).stream()
                 .map(this::mapMember)
                 .toList();
+
+        return PagedResponseDTO.from(PaginationUtils.paginate(members, page, size));
     }
 
     @Override
@@ -133,20 +139,24 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public List<TeamInviteDTO> getTeamInvites(Long teamId, String username) {
+    public PagedResponseDTO<TeamInviteDTO> getTeamInvites(Long teamId, int page, int size, String username) {
         User user = authorizationService.getRequiredUser(username);
         authorizationService.requireManagerOrOwner(teamId, user.getId());
-        return teamInviteRepository.findByTeamIdOrderByCreatedAtDesc(teamId).stream()
+        List<TeamInviteDTO> invites = teamInviteRepository.findByTeamIdOrderByCreatedAtDesc(teamId).stream()
                 .map(this::mapInvite)
                 .toList();
+
+        return PagedResponseDTO.from(PaginationUtils.paginate(invites, page, size));
     }
 
     @Override
-    public List<TeamInviteDTO> getMyPendingInvites(String username) {
+    public PagedResponseDTO<TeamInviteDTO> getMyPendingInvites(int page, int size, String username) {
         User user = authorizationService.getRequiredUser(username);
-        return teamInviteRepository.findByInvitedUserIdAndStatusOrderByCreatedAtDesc(user.getId(), InviteStatus.PENDING).stream()
+        List<TeamInviteDTO> invites = teamInviteRepository.findByInvitedUserIdAndStatusOrderByCreatedAtDesc(user.getId(), InviteStatus.PENDING).stream()
                 .map(this::mapInvite)
                 .toList();
+
+        return PagedResponseDTO.from(PaginationUtils.paginate(invites, page, size));
     }
 
     @Override

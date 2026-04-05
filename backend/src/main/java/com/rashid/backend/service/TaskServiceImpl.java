@@ -1,5 +1,6 @@
 package com.rashid.backend.service;
 
+import com.rashid.backend.dto.common.PagedResponseDTO;
 import com.rashid.backend.dto.task.TaskDTO;
 import com.rashid.backend.dto.task.TaskFilterDTO;
 import com.rashid.backend.exception.ResourceNotFoundException;
@@ -11,6 +12,9 @@ import com.rashid.backend.repository.TaskRepository;
 import com.rashid.backend.repository.TeamMemberRepository;
 import com.rashid.backend.repository.UserRepository;
 import com.rashid.backend.service.interfaces.TaskService;
+import com.rashid.backend.util.PaginationUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -54,22 +58,27 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskDTO> getTasksForProject(Long projectId, String username) {
+    public PagedResponseDTO<TaskDTO> getTasksForProject(Long projectId, int page, int size, String username) {
         User currentUser = authorizationService.getRequiredUser(username);
         Project project = authorizationService.getRequiredProject(projectId);
         authorizationService.requireProjectAccess(project, currentUser.getId());
-        return taskRepository.findByProjectId(projectId).stream().map(this::mapTask).toList();
+
+        List<TaskDTO> tasks = taskRepository.findByProjectId(projectId).stream()
+                .map(this::mapTask)
+                .toList();
+
+        return PagedResponseDTO.from(PaginationUtils.paginate(tasks, page, size));
     }
 
     @Override
-    public List<TaskDTO> getTasks(TaskFilterDTO filter, String username) {
+    public PagedResponseDTO<TaskDTO> getTasks(TaskFilterDTO filter, int page, int size, String username) {
         User currentUser = authorizationService.getRequiredUser(username);
         List<Long> teamIds = teamMemberRepository.findByUserId(currentUser.getId()).stream()
                 .map(member -> member.getTeam().getId())
                 .toList();
 
         if (teamIds.isEmpty()) {
-            return List.of();
+            return PagedResponseDTO.from(Page.empty(PageRequest.of(Math.max(page, 0), Math.max(size, 1))));
         }
 
         if (filter.getTeamId() != null) {
@@ -96,9 +105,12 @@ public class TaskServiceImpl implements TaskService {
             specification = specification.and((root, query, cb) -> cb.like(cb.lower(root.get("title")), search));
         }
 
-        return taskRepository.findAll(specification, Sort.by(Sort.Direction.DESC, "id")).stream()
-                .map(this::mapTask)
-                .toList();
+        Page<Task> taskPage = taskRepository.findAll(
+                specification,
+                PageRequest.of(Math.max(page, 0), Math.max(size, 1), Sort.by(Sort.Direction.DESC, "id"))
+        );
+
+        return PagedResponseDTO.from(taskPage.map(this::mapTask));
     }
 
     @Override

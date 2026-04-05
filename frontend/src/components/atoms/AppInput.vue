@@ -25,9 +25,6 @@ defineProps({
   transition: all 0.3s ease;
 }
 
-/* Glassmorphism styling specifically handled when nested in .glass-input-wrapper or explicitly passing a prop.
-   However, since AppInput is used globally, we provide a generic .glass-form context class to trigger this logic */
-
 :global(.glass-container .custom-input) {
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.1);

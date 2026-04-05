@@ -1,5 +1,6 @@
 package com.rashid.backend.controller;
 
+import com.rashid.backend.dto.common.PagedResponseDTO;
 import com.rashid.backend.dto.team.TeamDTO;
 import com.rashid.backend.dto.team.TeamInviteDTO;
 import com.rashid.backend.dto.team.TeamInviteRequestDTO;
@@ -10,8 +11,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/teams")
@@ -24,8 +23,12 @@ public class TeamController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TeamDTO>> getUserTeams(Authentication authentication) {
-        return ResponseEntity.ok(teamService.getUserTeams(authentication.getName()));
+    public ResponseEntity<PagedResponseDTO<TeamDTO>> getUserTeams(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(teamService.getUserTeams(page, size, authentication.getName()));
     }
 
     @PostMapping
@@ -43,8 +46,13 @@ public class TeamController {
     }
 
     @GetMapping("/{teamId}/members")
-    public ResponseEntity<List<TeamMemberDTO>> getTeamMembers(@PathVariable Long teamId, Authentication authentication) {
-        return ResponseEntity.ok(teamService.getTeamMembers(teamId, authentication.getName()));
+    public ResponseEntity<PagedResponseDTO<TeamMemberDTO>> getTeamMembers(
+            @PathVariable Long teamId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(teamService.getTeamMembers(teamId, page, size, authentication.getName()));
     }
 
     @PostMapping("/{teamId}/invites")
@@ -57,13 +65,22 @@ public class TeamController {
     }
 
     @GetMapping("/{teamId}/invites")
-    public ResponseEntity<List<TeamInviteDTO>> getTeamInvites(@PathVariable Long teamId, Authentication authentication) {
-        return ResponseEntity.ok(teamService.getTeamInvites(teamId, authentication.getName()));
+    public ResponseEntity<PagedResponseDTO<TeamInviteDTO>> getTeamInvites(
+            @PathVariable Long teamId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(teamService.getTeamInvites(teamId, page, size, authentication.getName()));
     }
 
     @GetMapping("/invites/me")
-    public ResponseEntity<List<TeamInviteDTO>> getMyInvites(Authentication authentication) {
-        return ResponseEntity.ok(teamService.getMyPendingInvites(authentication.getName()));
+    public ResponseEntity<PagedResponseDTO<TeamInviteDTO>> getMyInvites(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(teamService.getMyPendingInvites(page, size, authentication.getName()));
     }
 
     @PostMapping("/invites/{inviteId}/accept")
