@@ -12,11 +12,16 @@
         <AppInput v-model="password" type="password" placeholder="••••••••" />
       </FormGroup>
       
-      <AppButton variant="primary" class="w-100 mt-4 rounded-3 py-2">Sign In</AppButton>
+      <AppButton type="submit" variant="primary" class="w-100 mt-4 rounded-3 py-2" @click="handleLogin">Sign In</AppButton>
       
       <div v-if="error" class="text-danger mt-3 small bg-danger bg-opacity-10 py-2 rounded">
         {{ error }}
       </div>
+
+      <p class="mt-4 mb-0 small text-white-50">
+        Need an account?
+        <RouterLink to="/register" class="auth-link">Create one</RouterLink>
+      </p>
     </form>
   </AuthLayout>
 </template>
@@ -24,6 +29,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 import AuthLayout from '../components/templates/AuthLayout.vue'
 import FormGroup from '../components/molecules/FormGroup.vue'
@@ -40,14 +46,14 @@ const authStore = useAuthStore()
 const handleLogin = async () => {
   try {
     error.value = ''
-    if (!username.value || !password.value) {
-      error.value = 'Please enter credentials'
+    if (!username.value.trim() || !password.value) {
+      error.value = 'Please enter your username and password'
       return
     }
     await authStore.login({ username: username.value, password: password.value })
     router.push('/dashboard')
   } catch (err) {
-    error.value = 'Invalid username or password'
+    error.value = err.response?.data?.message || 'Invalid username or password'
   }
 }
 </script>
@@ -64,6 +70,17 @@ const handleLogin = async () => {
 .form-animation {
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: 0.2s;
+}
+
+.auth-link {
+  color: #c4b5fd;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-link:hover {
+  color: #ddd6fe;
+  text-decoration: underline;
 }
 
 @keyframes fadeInDown {

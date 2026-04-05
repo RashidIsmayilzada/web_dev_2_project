@@ -24,4 +24,5 @@ public class TimeLog {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String description;
+    private String source;
 }

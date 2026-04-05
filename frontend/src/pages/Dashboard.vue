@@ -1,30 +1,68 @@
 <template>
   <DashboardLayout>
-    <div class="d-flex justify-content-between align-items-center mb-5 header-slide">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
       <div>
         <h2 class="fw-bold text-dark m-0">Dashboard Overview</h2>
-        <p class="text-muted small m-0 mt-1">Track your progress and team hours.</p>
+        <p class="text-muted small m-0 mt-1">Personal productivity, tasks, time, and invite status.</p>
       </div>
-      <AppButton variant="primary" class="rounded-pill px-4 shadow-sm">+ New Project</AppButton>
+      <div class="d-flex gap-2 flex-wrap">
+        <AppButton variant="dark" class="rounded-pill px-4" @click="router.push('/teams')">Teams</AppButton>
+        <AppButton variant="primary" class="rounded-pill px-4" @click="router.push('/reports')">Reports</AppButton>
+      </div>
     </div>
-    
-    <div class="row g-4 cards-slide">
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-card">
-          <h6 class="text-muted fw-semibold mb-3">Total Projects</h6>
-          <h2 class="fw-bold m-0 text-dark">{{ stats.totalProjects }}</h2>
+
+    <div v-if="errorMessage" class="alert alert-danger rounded-4 border-0 shadow-sm">{{ errorMessage }}</div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-md-3">
+        <StatCard label="Teams" :value="overview.stats?.totalTeams || 0" />
+      </div>
+      <div class="col-md-3">
+        <StatCard label="Projects" :value="overview.stats?.totalProjects || 0" />
+      </div>
+      <div class="col-md-3">
+        <StatCard label="Active Tasks" :value="overview.stats?.activeTasks || 0" />
+      </div>
+      <div class="col-md-3">
+        <StatCard label="Pending Invites" :value="overview.stats?.pendingInvites || 0" />
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-xl-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0">Recent Tasks</h5>
+            <AppBadge variant="primary">{{ overview.recentTasks?.length || 0 }}</AppBadge>
+          </div>
+          <div class="d-flex flex-column gap-3">
+            <div v-for="task in overview.recentTasks || []" :key="task.id" class="border rounded-4 p-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-semibold">{{ task.title }}</span>
+                <AppBadge :variant="task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'primary' : 'secondary'">
+                  {{ task.status }}
+                </AppBadge>
+              </div>
+              <div class="small text-muted">{{ task.projectName }}</div>
+            </div>
+            <div v-if="!(overview.recentTasks || []).length" class="text-muted small">No recent tasks yet.</div>
+          </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-card">
-          <h6 class="text-muted fw-semibold mb-3">Active Tasks</h6>
-          <h2 class="fw-bold m-0 text-dark">{{ stats.activeTasks }}</h2>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 transition-card">
-          <h6 class="text-muted fw-semibold mb-3">Hours Tracked</h6>
-          <h2 class="fw-bold m-0 text-dark">{{ stats.hoursTracked }}h</h2>
+      <div class="col-xl-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0">Recent Time Logs</h5>
+            <AppBadge variant="success">{{ overview.recentTimeLogs?.length || 0 }}</AppBadge>
+          </div>
+          <div class="d-flex flex-column gap-3">
+            <div v-for="log in overview.recentTimeLogs || []" :key="log.id" class="border rounded-4 p-3">
+              <div class="fw-semibold">{{ log.taskTitle }}</div>
+              <div class="small text-muted">{{ log.projectName }}</div>
+              <div class="small mt-1">{{ formatDate(log.startTime) }}</div>
+            </div>
+            <div v-if="!(overview.recentTimeLogs || []).length" class="text-muted small">No recent time logs yet.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -32,46 +70,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import DashboardLayout from '../components/templates/DashboardLayout.vue'
 import AppButton from '../components/atoms/AppButton.vue'
+import AppBadge from '../components/atoms/AppBadge.vue'
+import StatCard from '../components/molecules/StatCard.vue'
+import { getOverview } from '../services/dashboardService'
 
-const stats = ref({
-  totalProjects: 0,
-  activeTasks: 0,
-  hoursTracked: 0
-})
+const router = useRouter()
+const overview = ref({})
+const errorMessage = ref('')
+
+const formatDate = (value) => new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get('/api/dashboard/stats')
-    stats.value = data
+    overview.value = await getOverview()
   } catch (error) {
-    console.error("Failed to load dashboard stats", error)
+    errorMessage.value = error.response?.data?.message || 'Failed to load dashboard stats'
   }
 })
 </script>
-
-<style scoped>
-.transition-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.transition-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05) !important;
-}
-
-.header-slide {
-  animation: fadeInUp 0.5s ease both;
-}
-.cards-slide {
-  animation: fadeInUp 0.5s ease both;
-  animation-delay: 0.1s;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>

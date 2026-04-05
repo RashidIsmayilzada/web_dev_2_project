@@ -5,6 +5,7 @@
     :value="modelValue" 
     @input="$emit('update:modelValue', $event.target.value)" 
     :placeholder="placeholder" 
+    :disabled="disabled"
   />
 </template>
 
@@ -12,7 +13,8 @@
 defineProps({
   modelValue: String,
   type: { type: String, default: 'text' },
-  placeholder: String
+  placeholder: String,
+  disabled: Boolean
 })
 </script>
 

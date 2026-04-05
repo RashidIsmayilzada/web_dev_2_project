@@ -1,7 +1,7 @@
 package com.rashid.backend.controller;
 
-import com.rashid.backend.dto.ProjectDTO;
-import com.rashid.backend.service.ProjectService;
+import com.rashid.backend.dto.project.ProjectDTO;
+import com.rashid.backend.service.interfaces.ProjectService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

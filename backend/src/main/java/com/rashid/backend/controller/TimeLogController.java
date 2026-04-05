@@ -1,7 +1,7 @@
 package com.rashid.backend.controller;
 
-import com.rashid.backend.dto.TimeLogDTO;
-import com.rashid.backend.service.TimeLogService;
+import com.rashid.backend.dto.timelog.TimeLogDTO;
+import com.rashid.backend.service.interfaces.TimeLogService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

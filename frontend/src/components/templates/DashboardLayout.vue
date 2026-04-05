@@ -14,6 +14,11 @@
           </router-link>
         </li>
         <li class="nav-item">
+          <router-link to="/teams" class="nav-link text-white rounded-3 px-3 py-2 fw-semibold transition-all">
+            <i class="bi bi-people-fill me-2"></i> Teams
+          </router-link>
+        </li>
+        <li class="nav-item">
           <router-link to="/projects" class="nav-link text-white rounded-3 px-3 py-2 fw-semibold transition-all">
             <i class="bi bi-folder-fill me-2"></i> Projects
           </router-link>
@@ -28,9 +33,26 @@
             <i class="bi bi-clock-history me-2"></i> Time Logs
           </router-link>
         </li>
+        <li class="nav-item">
+          <router-link to="/reports" class="nav-link text-white rounded-3 px-3 py-2 fw-semibold transition-all">
+            <i class="bi bi-bar-chart-fill me-2"></i> Reports
+          </router-link>
+        </li>
+        <li class="nav-item">
+          <router-link to="/team-dashboard" class="nav-link text-white rounded-3 px-3 py-2 fw-semibold transition-all">
+            <i class="bi bi-kanban-fill me-2"></i> Team Dashboard
+          </router-link>
+        </li>
       </ul>
       
       <div class="mt-auto nav-links-animation" style="animation-delay: 0.1s;">
+        <div class="user-card rounded-4 px-3 py-3 mb-3">
+          <p class="text-uppercase small text-white-50 mb-1 user-label">Signed In As</p>
+          <div class="fw-semibold text-white d-flex align-items-center gap-2">
+            <i class="bi bi-person-circle"></i>
+            <span>{{ authStore.user?.username || 'Unknown User' }}</span>
+          </div>
+        </div>
         <hr class="border-white border-opacity-25" />
         <a href="#" @click.prevent="logout" class="nav-link text-white-50 hover-white rounded-3 px-3 py-2 transition-all">
           <i class="bi bi-box-arrow-right me-2"></i> Logout
@@ -71,6 +93,13 @@ const logout = () => {
 .hover-white:hover {
   color: #fff !important;
   background: rgba(255, 255, 255, 0.05);
+}
+.user-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.user-label {
+  letter-spacing: 0.12em;
 }
 .active-link, .router-link-active {
   background: rgba(255, 255, 255, 0.1);

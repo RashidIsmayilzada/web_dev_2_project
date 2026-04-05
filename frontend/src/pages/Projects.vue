@@ -5,7 +5,23 @@
         <h2 class="fw-bold text-dark m-0">Projects</h2>
         <p class="text-muted small m-0 mt-1">Manage your team's projects.</p>
       </div>
-      <AppButton variant="primary" class="rounded-pill px-4 shadow-sm" @click="showCreateModal = true">+ New Project</AppButton>
+      <AppButton
+        variant="primary"
+        class="rounded-pill px-4 shadow-sm"
+        @click="openCreateModal"
+        :disabled="teams.length === 0"
+      >
+        + New Project
+      </AppButton>
+    </div>
+
+    <div v-if="!loading && teams.length === 0" class="alert alert-warning border-0 rounded-4 shadow-sm mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        Create a team first before creating projects.
+      </div>
+      <router-link to="/teams" class="btn btn-sm btn-dark rounded-pill px-3">
+        Go to Teams
+      </router-link>
     </div>
     
     <div v-if="loading" class="text-center py-5">
@@ -27,7 +43,10 @@
       </div>
       
       <div v-if="projects.length === 0" class="col-12 text-center py-5 text-muted">
-        No projects found. Create one to get started!
+        <p class="mb-3">No projects found. Create one to get started!</p>
+        <router-link v-if="teams.length === 0" to="/teams" class="btn btn-outline-dark rounded-pill px-4">
+          Create a Team First
+        </router-link>
       </div>
     </div>
 
@@ -47,13 +66,21 @@
             <FormGroup label="Description" class="mb-3">
               <AppInput v-model="newProject.description" placeholder="Short description..." />
             </FormGroup>
-            <FormGroup label="Team ID" class="mb-3">
-              <AppInput v-model="newProject.teamId" type="number" placeholder="Enter Team ID" />
+            <FormGroup label="Team" class="mb-3">
+              <select v-model="newProject.teamId" class="form-select custom-input">
+                <option :value="null" disabled>Select a team</option>
+                <option v-for="team in teams" :key="team.id" :value="team.id">
+                  {{ team.name }} (ID: {{ team.id }})
+                </option>
+              </select>
             </FormGroup>
+            <div v-if="formError" class="text-danger small bg-danger bg-opacity-10 py-2 px-3 rounded-3">
+              {{ formError }}
+            </div>
           </div>
           <div class="modal-footer border-0 pt-0">
             <AppButton variant="light" class="text-secondary" @click="showCreateModal = false">Cancel</AppButton>
-            <AppButton variant="primary" @click="createProject" :disabled="!newProject.name || !newProject.teamId">Create</AppButton>
+            <AppButton variant="primary" @click="createProject" :disabled="!canCreateProject">Create</AppButton>
           </div>
         </div>
       </div>
@@ -62,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import axios from 'axios'
 import DashboardLayout from '../components/templates/DashboardLayout.vue'
 import AppButton from '../components/atoms/AppButton.vue'
@@ -70,40 +97,83 @@ import AppInput from '../components/atoms/AppInput.vue'
 import FormGroup from '../components/molecules/FormGroup.vue'
 
 const projects = ref([])
+const teams = ref([])
 const loading = ref(true)
 const showCreateModal = ref(false)
+const formError = ref('')
 const newProject = ref({
   name: '',
   description: '',
   teamId: null
 })
 
+const canCreateProject = computed(() => {
+  return newProject.value.name.trim() && newProject.value.teamId
+})
+
 const fetchProjects = async () => {
   try {
-    loading.value = true
     const { data } = await axios.get('/api/projects')
     projects.value = data
   } catch (error) {
     console.error("Failed to fetch projects", error)
   } finally {
-    loading.value = false
   }
+}
+
+const fetchTeams = async () => {
+  try {
+    const { data } = await axios.get('/api/teams')
+    teams.value = data
+  } catch (error) {
+    console.error("Failed to fetch teams", error)
+  }
+}
+
+const resetProjectForm = () => {
+  newProject.value = {
+    name: '',
+    description: '',
+    teamId: teams.value[0]?.id ?? null
+  }
+  formError.value = ''
+}
+
+const openCreateModal = () => {
+  if (teams.value.length === 0) {
+    formError.value = 'Create a team first before creating a project.'
+    return
+  }
+
+  resetProjectForm()
+  showCreateModal.value = true
 }
 
 const createProject = async () => {
   try {
-    await axios.post('/api/projects', newProject.value)
+    formError.value = ''
+
+    const payload = {
+      name: newProject.value.name.trim(),
+      description: newProject.value.description.trim(),
+      teamId: Number(newProject.value.teamId)
+    }
+
+    await axios.post('/api/projects', payload)
     showCreateModal.value = false
-    newProject.value = { name: '', description: '', teamId: null }
+    resetProjectForm()
     await fetchProjects()
   } catch (error) {
     console.error("Failed to create project", error)
-    alert("Could not create project. Ensure Team ID exists and you have access.")
+    formError.value = error.response?.data?.message || "Could not create project."
   }
 }
 
-onMounted(() => {
-  fetchProjects()
+onMounted(async () => {
+  loading.value = true
+  await Promise.all([fetchProjects(), fetchTeams()])
+  resetProjectForm()
+  loading.value = false
 })
 </script>
 
@@ -131,6 +201,9 @@ onMounted(() => {
 .modal-content .custom-input {
   border: 1px solid #dee2e6;
   background: #f8f9fa;
+  color: #212529;
+}
+.modal-content .custom-input option {
   color: #212529;
 }
 .modal-content .custom-input:focus {

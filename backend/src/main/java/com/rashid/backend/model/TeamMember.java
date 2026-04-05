@@ -1,5 +1,6 @@
 package com.rashid.backend.model;
 
+import com.rashid.backend.model.enums.TeamRole;
 import jakarta.persistence.*;
 import lombok.Data;
 

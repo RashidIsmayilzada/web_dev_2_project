@@ -1,9 +1,10 @@
 package com.rashid.backend.controller;
 
-import com.rashid.backend.dto.AuthRequest;
-import com.rashid.backend.dto.AuthResponse;
-import com.rashid.backend.dto.RegisterRequest;
-import com.rashid.backend.service.AuthService;
+import com.rashid.backend.dto.auth.AuthRequestDTO;
+import com.rashid.backend.dto.auth.AuthResponseDTO;
+import com.rashid.backend.dto.auth.RegisterRequestDTO;
+import com.rashid.backend.service.interfaces.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,12 +19,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody AuthRequestDTO request) {
         return ResponseEntity.ok(authService.login(request));
     }
 }
