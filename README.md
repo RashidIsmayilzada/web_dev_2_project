@@ -2,6 +2,10 @@
 
 Team Productivity Hub is a full-stack web application for managing teams, projects, tasks, and time tracking in one place. It was built for the Web Development 2 course and focuses on authenticated team collaboration, task workflow management, reporting, and a RESTful backend.
 
+## IMPORTANT
+
+- You need to wait a bit untill the backend is started otherwise nothing will work. It usually takes not more than 1 minute after frontend container is started.
+
 ## Main Features
 
 - JWT-based authentication with register and login flows
@@ -17,7 +21,7 @@ Team Productivity Hub is a full-stack web application for managing teams, projec
 ## Tech Stack
 
 - Frontend: Vue.js
-- Backend: Java 21, Spring Boot, Spring Security, Spring Data JPA, JWT (As you approved to use java in the beginning of the term)
+- Backend: Java 21, Spring Boot (As you approved to use java in the beginning of the term)
 - Database: MariaDB
 - DevOps: Docker 
 
@@ -49,6 +53,8 @@ docker compose up --build
 - Backend API: `http://localhost:8080`
 - phpMyAdmin: `http://localhost:8081`
 
+4. There is a data seeder that is automatically activated when you run the docker container so all the data automatically imported to the database however I will still import a database export
+
 
 ## Demo Data
 
@@ -57,6 +63,31 @@ The backend supports seeded demo data through:
 - `APP_SEED_DEMO_DATA=true`
 
 This is enabled in the Docker Compose setup, which makes the project easier to demo quickly.
+
+Seeded demo users:
+
+- `owner.alpha` - `owner.alpha@example.com`
+- `manager.beta` - `manager.beta@example.com`
+- `manager.gamma` - `manager.gamma@example.com`
+- `member.delta` - `member.delta@example.com`
+- `member.echo` - `member.echo@example.com`
+- `member.foxtrot` - `member.foxtrot@example.com`
+- `member.golf` - `member.golf@example.com`
+- `member.hotel` - `member.hotel@example.com`
+- `member.india` - `member.india@example.com`
+- `member.juliet` - `member.juliet@example.com`
+- `member.kilo` - `member.kilo@example.com`
+- `member.lima` - `member.lima@example.com`
+- `member.mike` - `member.mike@example.com`
+- `member.november` - `member.november@example.com`
+- `member.oscar` - `member.oscar@example.com`
+- `member.papa` - `member.papa@example.com`
+- `member.quebec` - `member.quebec@example.com`
+- `member.romeo` - `member.romeo@example.com`
+
+All seeded users use the same password:
+
+- `Password123!`
 
 ## API Notes
 
@@ -123,4 +154,4 @@ Additional planning and scope details are documented in [team_productivity_hub_d
 
 ## AI Disclosure
 
-AI tools were used during planning, refinement, documentation, and development support. All code should be reviewed and understood before submission or presentation.
+AI tools were used during planning, refinement, documentation, and development support. All code have been reviewed and understood before submission or presentation.
