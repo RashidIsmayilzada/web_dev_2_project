@@ -130,7 +130,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import DashboardLayout from '../components/templates/DashboardLayout.vue'
 import AppButton from '../components/atoms/AppButton.vue'
 import AppInput from '../components/atoms/AppInput.vue'
@@ -146,6 +147,7 @@ import { getTeamMembers, getTeams } from '../services/teamService'
 import { cancelTimer, getActiveTimer, startTimer, stopTimer } from '../services/timerService'
 
 const statuses = ['TODO', 'IN_PROGRESS', 'DONE']
+const route = useRoute()
 const teams = ref([])
 const projects = ref([])
 const tasks = ref([])
@@ -204,14 +206,47 @@ const normalizedFilters = () => {
   return filters
 }
 
+const getRouteProjectId = () => {
+  const projectId = Array.isArray(route.query.projectId)
+    ? route.query.projectId[0]
+    : route.query.projectId || (Array.isArray(route.query.project) ? route.query.project[0] : route.query.project)
+
+  return projectId ? String(projectId) : ''
+}
+
+const applyRouteFilters = () => {
+  const routeProjectId = getRouteProjectId()
+  if (!routeProjectId) return
+
+  taskFilters.value.projectId = routeProjectId
+
+  const selectedProject = projects.value.find((project) => String(project.id) === String(routeProjectId))
+  if (selectedProject) {
+    taskFilters.value.teamId = String(selectedProject.teamId)
+  }
+}
+
 const loadData = async () => {
   teams.value = await getTeams()
   projects.value = await getProjects()
+  applyRouteFilters()
   await Promise.all([loadTasks(), loadActiveTimer()])
 }
 
 const loadTasks = async () => {
-  tasks.value = await getTasks(normalizedFilters())
+  const filters = normalizedFilters()
+  const routeProjectId = getRouteProjectId()
+  const effectiveProjectId = routeProjectId || (filters.projectId ? String(filters.projectId) : '')
+
+  if (effectiveProjectId) {
+    filters.projectId = Number(effectiveProjectId)
+  }
+
+  const loadedTasks = await getTasks(filters)
+  tasks.value = effectiveProjectId
+    ? loadedTasks.filter((task) => String(task.projectId) === String(effectiveProjectId))
+    : loadedTasks
+
   await loadAssignableMembers()
 }
 
@@ -445,6 +480,18 @@ onMounted(async () => {
     pageError.value = error.response?.data?.message || 'Could not load tasks.'
   }
 })
+
+watch(
+  () => [route.query.projectId, route.query.project],
+  async () => {
+    applyRouteFilters()
+    try {
+      await loadTasks()
+    } catch (error) {
+      pageError.value = error.response?.data?.message || 'Could not load tasks.'
+    }
+  }
+)
 </script>
 
 <style scoped>

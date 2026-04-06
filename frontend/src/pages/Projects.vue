@@ -37,7 +37,7 @@
           <p class="text-muted small mb-4 flex-grow-1">{{ project.description }}</p>
           <div class="d-flex justify-content-between align-items-center mt-auto">
             <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">Team ID: {{ project.teamId }}</span>
-            <router-link :to="`/tasks?project=${project.id}`" class="btn btn-sm btn-outline-primary rounded-pill px-3">View Tasks</router-link>
+            <router-link :to="{ path: '/tasks', query: { projectId: String(project.id) } }" class="btn btn-sm btn-outline-primary rounded-pill px-3">View Tasks</router-link>
           </div>
         </div>
       </div>
